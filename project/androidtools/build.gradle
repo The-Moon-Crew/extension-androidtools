@@ -1,25 +1,40 @@
 apply plugin: 'com.android.library'
 
-repositories
-{
+repositories {
 	mavenCentral()
 	google()
 }
 
-tasks.withType(JavaCompile)
-{
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
-android
-{
+android {
 	namespace 'org.haxe.extension.androidtools'
-	compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
-	buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
+	compileSdkVersion project.hasProperty('ANDROID_BUILD_SDK_VERSION') ? Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION) : 34
+	buildToolsVersion project.hasProperty('ANDROID_BUILD_TOOLS_VERSION') ? project.ANDROID_BUILD_TOOLS_VERSION : "34.0.0"
+
+	defaultConfig {
+		minSdkVersion project.hasProperty('ANDROID_BUILD_MIN_SDK_VERSION') ? Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION) : 21
+		targetSdkVersion project.hasProperty('ANDROID_BUILD_TARGET_SDK_VERSION') ? Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION) : 34
+		
+		consumerProguardFiles 'consumer-rules.pro'
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_8
+		targetCompatibility JavaVersion.VERSION_1_8
+	}
+
+	lintOptions {
+		abortOnError false
+		disable 'InvalidPackage'
+	}
 }
 
-dependencies
-{
+dependencies {
 	implementation project(':deps:extension-api')
-	implementation('androidx.core:core:1.6.0')
+	implementation 'androidx.core:core:1.12.0'
+	implementation 'androidx.annotation:annotation:1.7.0'
 }
