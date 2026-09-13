@@ -11,6 +11,7 @@ import extension.androidtools.content.Context;
 import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
 import extension.androidtools.media.AudioManager;
+import extension.androidtools.os.Build;
 
 class Android
 {
@@ -146,6 +147,21 @@ class Android
 	public static function getObbDir():String
 	{
 		return Context.getObbDir();
+	}
+
+	public static function getDeviceModel():String
+	{
+		return Build.MODEL;
+	}
+
+	public static function getDeviceManufacturer():String
+	{
+		return Build.MANUFACTURER;
+	}
+
+	public static function getSDKVersion():Int
+	{
+		return Build.VERSION.SDK_INT;
 	}
 
 	public static function isPermissionGranted(permission:String):Bool
