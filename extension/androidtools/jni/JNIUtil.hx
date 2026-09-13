@@ -96,15 +96,20 @@ class JNIUtil
 		return safeCallMember(method, handle, [], cast(0, haxe.Int64));
 	}
 
-	public static function safeCallMember<T>(method:Null<Dynamic>, handle:Null<Dynamic>, args:Array<Dynamic>, defaultValue:T):T
+	public static function safeCallMember<T>(method:Null<Dynamic>, handle:Null<Dynamic>, args:Null<Array<Dynamic>>, defaultValue:T):T
 	{
 		if (method == null || handle == null)
 			return defaultValue;
 
+		final callArgs:Array<Dynamic> = args != null ? args : [];
+
 		try
 		{
-			final result:Dynamic = JNI.callMember(method, handle, args != null ? args : []);
-			return result != null ? cast result : defaultValue;
+			final rawResult:Dynamic = JNI.callMember(method, handle, callArgs);
+			if (rawResult == null)
+				return defaultValue;
+
+			return cast rawResult;
 		}
 		catch (_:Dynamic)
 		{
@@ -112,15 +117,20 @@ class JNIUtil
 		}
 	}
 
-	public static function safeCallStatic<T>(method:Null<Dynamic>, args:Array<Dynamic>, defaultValue:T):T
+	public static function safeCallStatic<T>(method:Null<Dynamic>, args:Null<Array<Dynamic>>, defaultValue:T):T
 	{
 		if (method == null)
 			return defaultValue;
 
+		final callArgs:Array<Dynamic> = args != null ? args : [];
+
 		try
 		{
-			final result:Dynamic = JNI.callStatic(method, args != null ? args : []);
-			return result != null ? cast result : defaultValue;
+			final rawResult:Dynamic = JNI.callStatic(method, callArgs);
+			if (rawResult == null)
+				return defaultValue;
+
+			return cast rawResult;
 		}
 		catch (_:Dynamic)
 		{
@@ -135,8 +145,11 @@ class JNIUtil
 
 		try
 		{
-			final result:Dynamic = field.get();
-			return result != null ? cast result : defaultValue;
+			final rawResult:Dynamic = field.get();
+			if (rawResult == null)
+				return defaultValue;
+
+			return cast rawResult;
 		}
 		catch (_:Dynamic)
 		{
@@ -151,8 +164,11 @@ class JNIUtil
 
 		try
 		{
-			final result:Dynamic = field.get(handle);
-			return result != null ? cast result : defaultValue;
+			final rawResult:Dynamic = field.get(handle);
+			if (rawResult == null)
+				return defaultValue;
+
+			return cast rawResult;
 		}
 		catch (_:Dynamic)
 		{
