@@ -15,6 +15,7 @@ typedef ActivityResultData = {
 	var requestCode:Int;
 	var resultCode:Int;
 	var ?data:Dynamic;
+	var ?uri:String;
 }
 
 typedef PermissionResultData = {
@@ -43,6 +44,13 @@ class CallBack
 			_initialized = true;
 		}
 	}
+
+	public static function reset():Void
+	{
+		onActivityResult.removeAll();
+		onRequestPermissionsResult.removeAll();
+		_initialized = false;
+	}
 }
 
 @:noCompletion
@@ -66,7 +74,8 @@ private class CallBackHandler #if (lime >= "8.0.0") implements JNISafety #end
 		try
 		{
 			final data:ActivityResultData = Json.parse(trimmed);
-			CallBack.onActivityResult.dispatch(data);
+			if (CallBack.onActivityResult != null)
+				CallBack.onActivityResult.dispatch(data);
 		}
 		catch (_:Dynamic) {}
 	}
@@ -87,7 +96,8 @@ private class CallBackHandler #if (lime >= "8.0.0") implements JNISafety #end
 		try
 		{
 			final data:PermissionResultData = Json.parse(trimmed);
-			CallBack.onRequestPermissionsResult.dispatch(data);
+			if (CallBack.onRequestPermissionsResult != null)
+				CallBack.onRequestPermissionsResult.dispatch(data);
 		}
 		catch (_:Dynamic) {}
 	}
