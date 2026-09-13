@@ -3,6 +3,7 @@ package extension.androidtools.callback;
 #if (!android && !native)
 #error 'extension-androidtools is not supported on your current platform'
 #end
+
 import extension.androidtools.jni.JNICache;
 import haxe.Json;
 import lime.app.Event;
@@ -10,76 +11,84 @@ import lime.system.JNI;
 
 using StringTools;
 
-/**
- * Utility class to manage callbacks from native code using JNI.
- * This class provides initialization methods and events for handling
- * activity results and permissions results from native code.
- */
+typedef ActivityResultData = {
+	var requestCode:Int;
+	var resultCode:Int;
+	var ?data:Dynamic;
+}
+
+typedef PermissionResultData = {
+	var requestCode:Int;
+	var permissions:Array<String>;
+	var grantResults:Array<Int>;
+}
+
 class CallBack
 {
-	/**
-	 * Event triggered when an activity result is received.
-	 * 
-	 * Handlers should expect a dynamic argument.
-	 */
-	public static var onActivityResult:Event<Dynamic->Void> = new Event<Dynamic->Void>();
+	public static final onActivityResult:Event<ActivityResultData->Void> = new Event<ActivityResultData->Void>();
+	public static final onRequestPermissionsResult:Event<PermissionResultData->Void> = new Event<PermissionResultData->Void>();
 
-	/**
-	 * Event triggered when a permissions result is received.
-	 * 
-	 * Handlers should expect a dynamic argument.
-	 */
-	public static var onRequestPermissionsResult:Event<Dynamic->Void> = new Event<Dynamic->Void>();
+	private static var _initialized:Bool = false;
 
-	/**
-	 * Initializes the callback handling mechanism.
-	 * 
-	 * This method should be called once before using any callback events.
-	 */
 	public static function init():Void
 	{
+		if (_initialized)
+			return;
+
 		final initCallBackJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'initCallBack', '(Lorg/haxe/lime/HaxeObject;)V');
 
 		if (initCallBackJNI != null)
+		{
 			initCallBackJNI(new CallBackHandler());
+			_initialized = true;
+		}
 	}
 }
 
-/**
- * Internal class to handle native callback events.
- */
 @:noCompletion
 private class CallBackHandler #if (lime >= "8.0.0") implements JNISafety #end
 {
 	public function new():Void {}
 
-	/**
-	 * Handles the activity result callback from native code.
-	 *
-	 * @param content The JSON string containing the activity result data.
-	 */
 	@:keep
 	#if (lime >= "8.0.0")
 	@:runOnMainThread
 	#end
 	public function onActivityResult(content:String):Void
 	{
-		if (CallBack.onActivityResult != null)
-			CallBack.onActivityResult.dispatch(Json.parse(content.trim()));
+		if (content == null)
+			return;
+
+		final trimmed:String = content.trim();
+		if (trimmed.length == 0)
+			return;
+
+		try
+		{
+			final data:ActivityResultData = Json.parse(trimmed);
+			CallBack.onActivityResult.dispatch(data);
+		}
+		catch (_:Dynamic) {}
 	}
 
-	/**
-	 * Handles the permissions result callback from native code.
-	 *
-	 * @param content The JSON string containing the permissions result data.
-	 */
 	@:keep
 	#if (lime >= "8.0.0")
 	@:runOnMainThread
 	#end
 	public function onRequestPermissionsResult(content:String):Void
 	{
-		if (CallBack.onRequestPermissionsResult != null)
-			CallBack.onRequestPermissionsResult.dispatch(Json.parse(content.trim()));
+		if (content == null)
+			return;
+
+		final trimmed:String = content.trim();
+		if (trimmed.length == 0)
+			return;
+
+		try
+		{
+			final data:PermissionResultData = Json.parse(trimmed);
+			CallBack.onRequestPermissionsResult.dispatch(data);
+		}
+		catch (_:Dynamic) {}
 	}
 }
