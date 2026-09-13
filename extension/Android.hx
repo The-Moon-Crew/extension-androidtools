@@ -113,6 +113,11 @@ class Android
 		JNIUtil.safeCallStatic(method, [title, message, channelID, channelName, id], null);
 	}
 
+	public static function getPackageName():String
+	{
+		return Context.getPackageName();
+	}
+
 	public static function getFilesDir():String
 	{
 		return Context.getFilesDir();
@@ -121,6 +126,11 @@ class Android
 	public static function getExternalFilesDir(type:String = null):String
 	{
 		return Context.getExternalFilesDir(type);
+	}
+
+	public static function getExternalFilesDirs(type:String = null):Array<String>
+	{
+		return Context.getExternalFilesDirs(type);
 	}
 
 	public static function getCacheDir():String
@@ -148,6 +158,16 @@ class Android
 		return Permissions.isGrantedAll(permissions);
 	}
 
+	public static function isPermissionGrantedAny(permissions:Array<String>):Bool
+	{
+		return Permissions.isGrantedAny(permissions);
+	}
+
+	public static function getDeniedPermissions(permissions:Array<String>):Array<String>
+	{
+		return Permissions.getDeniedPermissions(permissions);
+	}
+
 	public static function requestPermissions(permissions:Array<String>, requestCode:Int = 1):Void
 	{
 		Permissions.requestPermissions(permissions, requestCode);
@@ -156,6 +176,11 @@ class Android
 	public static function requestPermissionsAsync(permissions:Array<String>, requestCode:Int = 1, onComplete:CallBack.PermissionResultData->Void):Void
 	{
 		Permissions.requestPermissionsAsync(permissions, requestCode, onComplete);
+	}
+
+	public static function requestPermissionsWithFallback(permissions:Array<String>, requestCode:Int = 1, onGranted:Void->Void, onDenied:Array<String>->Void):Void
+	{
+		Permissions.requestPermissionsWithFallback(permissions, requestCode, onGranted, onDenied);
 	}
 
 	public static function isExternalStorageManager():Bool
@@ -178,9 +203,49 @@ class Android
 		return AudioManager.getStreamVolume(streamType);
 	}
 
+	public static function getMaxStreamVolume(streamType:Int):Int
+	{
+		return AudioManager.getMaxStreamVolume(streamType);
+	}
+
+	public static function getMinStreamVolume(streamType:Int):Int
+	{
+		return AudioManager.getMinStreamVolume(streamType);
+	}
+
 	public static function setStreamVolume(streamType:Int, index:Int, flags:Int):Void
 	{
 		AudioManager.setStreamVolume(streamType, index, flags);
+	}
+
+	public static function isStreamMute(streamType:Int):Bool
+	{
+		return AudioManager.isStreamMute(streamType);
+	}
+
+	public static function getRingerMode():Int
+	{
+		return AudioManager.getRingerMode();
+	}
+
+	public static function setRingerMode(ringerMode:Int):Void
+	{
+		AudioManager.setRingerMode(ringerMode);
+	}
+
+	public static function isMusicActive():Bool
+	{
+		return AudioManager.isMusicActive();
+	}
+
+	public static function requestAudioFocus(?focusChange:Int->Void, streamType:Int = AudioManager.STREAM_MUSIC, durationHint:Int = AudioManager.AUDIOFOCUS_GAIN):Int
+	{
+		return AudioManager.requestAudioFocus(focusChange, streamType, durationHint);
+	}
+
+	public static function abandonAudioFocus():Int
+	{
+		return AudioManager.abandonAudioFocus();
 	}
 }
 
