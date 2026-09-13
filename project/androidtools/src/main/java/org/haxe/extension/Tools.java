@@ -40,6 +40,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.haxe.extension.Extension;
 import org.haxe.lime.HaxeObject;
@@ -55,6 +56,16 @@ public class Tools extends Extension
 	public static void initCallBack(final HaxeObject cbObject)
 	{
 		Tools.cbObject = cbObject;
+	}
+
+	public static String getPackageName()
+	{
+		return packageName != null ? packageName : (mainContext != null ? mainContext.getPackageName() : "");
+	}
+
+	public static String getExternalStorageState()
+	{
+		return Environment.getExternalStorageState();
 	}
 
 	public static boolean isPermissionGranted(final String permission)
@@ -81,7 +92,7 @@ public class Tools extends Extension
 
 		try
 		{
-			final PackageInfo info = mainContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
+			final PackageInfo info = mainContext.getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_PERMISSIONS);
 			if (info != null && info.requestedPermissions != null)
 			{
 				for (int i = 0; i < info.requestedPermissions.length; i++)
@@ -159,7 +170,7 @@ public class Tools extends Extension
 			try
 			{
 				Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-				intent.setData(Uri.parse("package:" + packageName));
+				intent.setData(Uri.parse("package:" + getPackageName()));
 				mainActivity.startActivityForResult(intent, requestCode);
 			}
 			catch (Exception e)
@@ -175,6 +186,76 @@ public class Tools extends Extension
 				"android.permission.WRITE_EXTERNAL_STORAGE"
 			}, requestCode);
 		}
+	}
+
+	public static boolean isArmv7()
+	{
+		String[] abis = getSupportedAbis();
+		for (String abi : abis)
+		{
+			if (abi.startsWith("armeabi-v7a"))
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isArm64()
+	{
+		String[] abis = getSupportedAbis();
+		for (String abi : abis)
+		{
+			if (abi.startsWith("arm64-v8a"))
+				return true;
+		}
+		return false;
+	}
+
+	public static String getCpuAbi()
+	{
+		return getPrimaryCpuAbi();
+	}
+
+	public static String getPrimaryCpuAbi()
+	{
+		String[] abis = getSupportedAbis();
+		return abis.length > 0 ? abis[0] : "";
+	}
+
+	public static String[] getSupportedAbis()
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOWER_THAN_LOLLIPOP)
+		{
+			return Build.SUPPORTED_ABIS != null ? Build.SUPPORTED_ABIS : new String[0];
+		}
+		return new String[]{Build.CPU_ABI, Build.CPU_ABI2};
+	}
+
+	public static String[] getSupported64BitAbis()
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOWER_THAN_LOLLIPOP)
+		{
+			return Build.SUPPORTED_64_BIT_ABIS != null ? Build.SUPPORTED_64_BIT_ABIS : new String[0];
+		}
+		return new String[0];
+	}
+
+	public static boolean is32BitArchitecture()
+	{
+		return !is64BitArchitecture();
+	}
+
+	public static boolean is64BitArchitecture()
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+		{
+			return Process.is64Bit();
+		}
+		return getSupported64BitAbis().length > 0;
+	}
+
+	public static boolean hasNeonSupport()
+	{
+		return isArm64() || isArmv7();
 	}
 
 	public static void makeToastText(final String message, final int duration, final int gravity, final int xOffset, final int yOffset)
@@ -377,7 +458,7 @@ public class Tools extends Extension
 		{
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 			{
-				VibratorManager vibratorManager = (VibratorManager) mainContext.getSystemService(Context.VibratorManager_SERVICE);
+				VibratorManager vibratorManager = (VibratorManager) mainContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
 				if (vibratorManager != null)
 				{
 					vibratorManager.getDefaultVibrator().vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE));
@@ -465,7 +546,7 @@ public class Tools extends Extension
 		try
 		{
 			final Intent intent = new Intent(setting);
-			intent.setData(Uri.fromParts("package", packageName, null));
+			intent.setData(Uri.fromParts("package", getPackageName(), null));
 			mainActivity.startActivityForResult(intent, requestCode);
 		}
 		catch (Exception e)
@@ -525,7 +606,7 @@ public class Tools extends Extension
 					builder.setAutoCancel(true);
 					builder.setContentTitle(title);
 					builder.setContentText(message);
-					builder.setSmallIcon(mainContext.getResources().getIdentifier("icon", "drawable", packageName));
+					builder.setSmallIcon(mainContext.getResources().getIdentifier("icon", "drawable", getPackageName()));
 					builder.setWhen(System.currentTimeMillis());
 
 					notificationManager.notify(ID, builder.build());
@@ -577,6 +658,204 @@ public class Tools extends Extension
 		}
 
 		return 0;
+	}
+
+	public static int getMaxStreamVolume(final int streamType)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.getStreamMaxVolume(streamType);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return 0;
+	}
+
+	public static int getMinStreamVolume(final int streamType)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+			{
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+					return audioManager.getStreamMinVolume(streamType);
+			}
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return 0;
+	}
+
+	public static void setStreamVolume(final int streamType, final int index, final int flags)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				audioManager.setStreamVolume(streamType, index, flags);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static boolean isStreamMute(final int streamType)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+			{
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+					return audioManager.isStreamMute(streamType);
+			}
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return false;
+	}
+
+	public static int getRingerMode()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.getRingerMode();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return AudioManager.RINGER_MODE_NORMAL;
+	}
+
+	public static void setRingerMode(final int ringerMode)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				audioManager.setRingerMode(ringerMode);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static int getAudioMode()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.getMode();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return AudioManager.MODE_NORMAL;
+	}
+
+	public static void setAudioMode(final int mode)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				audioManager.setMode(mode);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static boolean isMusicActive()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.isMusicActive();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return false;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static boolean isWiredHeadsetOn()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.isWiredHeadsetOn();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return false;
+	}
+
+	public static boolean isBluetoothA2dpOn()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.isBluetoothA2dpOn();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return false;
+	}
+
+	public static boolean isSpeakerphoneOn()
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				return audioManager.isSpeakerphoneOn();
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+		return false;
+	}
+
+	public static void setSpeakerphoneOn(final boolean on)
+	{
+		try
+		{
+			final AudioManager audioManager = (AudioManager) mainContext.getSystemService(Context.AUDIO_SERVICE);
+			if (audioManager != null)
+				audioManager.setSpeakerphoneOn(on);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
 	}
 
 	@SuppressWarnings("deprecation")
