@@ -12,7 +12,7 @@ haxelib install extension-androidtools
 ```
 Or through `Git`, if you want the latest updates
 ```bash
-haxelib git extension-androidtools https://github.com/LimeExtensions/extension-androidtools.git
+haxelib git extension-androidtools https://github.com/The-Moon-Crew/extension-androidtools.git
 ```
 
 ## Licensing
