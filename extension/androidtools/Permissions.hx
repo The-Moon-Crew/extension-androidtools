@@ -13,6 +13,19 @@ using StringTools;
 
 class Permissions
 {
+	public static final READ_EXTERNAL_STORAGE:String = 'android.permission.READ_EXTERNAL_STORAGE';
+	public static final WRITE_EXTERNAL_STORAGE:String = 'android.permission.WRITE_EXTERNAL_STORAGE';
+	public static final MANAGE_EXTERNAL_STORAGE:String = 'android.permission.MANAGE_EXTERNAL_STORAGE';
+	public static final RECORD_AUDIO:String = 'android.permission.RECORD_AUDIO';
+	public static final CAMERA:String = 'android.permission.CAMERA';
+	public static final POST_NOTIFICATIONS:String = 'android.permission.POST_NOTIFICATIONS';
+	public static final ACCESS_FINE_LOCATION:String = 'android.permission.ACCESS_FINE_LOCATION';
+	public static final ACCESS_COARSE_LOCATION:String = 'android.permission.ACCESS_COARSE_LOCATION';
+	public static final BLUETOOTH_CONNECT:String = 'android.permission.BLUETOOTH_CONNECT';
+	public static final READ_MEDIA_IMAGES:String = 'android.permission.READ_MEDIA_IMAGES';
+	public static final READ_MEDIA_VIDEO:String = 'android.permission.READ_MEDIA_VIDEO';
+	public static final READ_MEDIA_AUDIO:String = 'android.permission.READ_MEDIA_AUDIO';
+
 	public static function isGranted(permission:String):Bool
 	{
 		if (permission == null || permission.length == 0)
@@ -35,6 +48,19 @@ class Permissions
 				return false;
 		}
 		return true;
+	}
+
+	public static function isGrantedAny(permissions:Array<String>):Bool
+	{
+		if (permissions == null || permissions.length == 0)
+			return false;
+
+		for (perm in permissions)
+		{
+			if (isGranted(perm))
+				return true;
+		}
+		return false;
 	}
 
 	public static function getGrantedPermissions():Array<String>
@@ -67,6 +93,18 @@ class Permissions
 		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'shouldShowRequestPermissionRationale', '(Ljava/lang/String;)Z');
 
 		return JNIUtil.safeCallStatic(method, [formatted], false);
+	}
+
+	public static function isExternalStorageManager():Bool
+	{
+		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'isExternalStorageManager', '()Z');
+		return JNIUtil.safeCallStatic(method, [], false);
+	}
+
+	public static function requestManageAllFilesPermission(requestCode:Int = 1000):Void
+	{
+		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'requestManageAllFilesPermission', '(I)V');
+		JNIUtil.safeCallStatic(method, [requestCode], null);
 	}
 
 	public static function requestPermissions(permissions:Array<String>, requestCode:Int = 1):Void
