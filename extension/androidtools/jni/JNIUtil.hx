@@ -17,34 +17,8 @@ class JNIUtil
 		if (method == null)
 			return '';
 
-		final path:Null<String> = JNI.callMember(method, handle, []);
+		final path:Null<String> = safeCallMember(method, handle, [], '');
 		return path != null ? path : '';
-	}
-
-	public static function exists(handle:Null<Dynamic>):Bool
-	{
-		if (handle == null)
-			return false;
-
-		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'exists', '()Z');
-		if (method == null)
-			return false;
-
-		final result:Null<Bool> = JNI.callMember(method, handle, []);
-		return result != null ? result : false;
-	}
-
-	public static function isDirectory(handle:Null<Dynamic>):Bool
-	{
-		if (handle == null)
-			return false;
-
-		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'isDirectory', '()Z');
-		if (method == null)
-			return false;
-
-		final result:Null<Bool> = JNI.callMember(method, handle, []);
-		return result != null ? result : false;
 	}
 
 	public static function getCanonicalPath(handle:Null<Dynamic>):String
@@ -56,7 +30,7 @@ class JNIUtil
 		if (method == null)
 			return '';
 
-		final path:Null<String> = JNI.callMember(method, handle, []);
+		final path:Null<String> = safeCallMember(method, handle, [], '');
 		return path != null ? path : '';
 	}
 
@@ -69,7 +43,7 @@ class JNIUtil
 		if (method == null)
 			return '';
 
-		final name:Null<String> = JNI.callMember(method, handle, []);
+		final name:Null<String> = safeCallMember(method, handle, [], '');
 		return name != null ? name : '';
 	}
 
@@ -82,8 +56,44 @@ class JNIUtil
 		if (method == null)
 			return '';
 
-		final parent:Null<String> = JNI.callMember(method, handle, []);
+		final parent:Null<String> = safeCallMember(method, handle, [], '');
 		return parent != null ? parent : '';
+	}
+
+	public static function exists(handle:Null<Dynamic>):Bool
+	{
+		if (handle == null)
+			return false;
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'exists', '()Z');
+		return safeCallMember(method, handle, [], false);
+	}
+
+	public static function isDirectory(handle:Null<Dynamic>):Bool
+	{
+		if (handle == null)
+			return false;
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'isDirectory', '()Z');
+		return safeCallMember(method, handle, [], false);
+	}
+
+	public static function isFile(handle:Null<Dynamic>):Bool
+	{
+		if (handle == null)
+			return false;
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'isFile', '()Z');
+		return safeCallMember(method, handle, [], false);
+	}
+
+	public static function length(handle:Null<Dynamic>):haxe.Int64
+	{
+		if (handle == null)
+			return cast(0, haxe.Int64);
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'length', '()J');
+		return safeCallMember(method, handle, [], cast(0, haxe.Int64));
 	}
 
 	public static function safeCallMember<T>(method:Null<Dynamic>, handle:Null<Dynamic>, args:Array<Dynamic>, defaultValue:T):T
@@ -110,6 +120,38 @@ class JNIUtil
 		try
 		{
 			final result:Dynamic = JNI.callStatic(method, args != null ? args : []);
+			return result != null ? cast result : defaultValue;
+		}
+		catch (_:Dynamic)
+		{
+			return defaultValue;
+		}
+	}
+
+	public static function safeGetStaticField<T>(field:Null<Dynamic>, defaultValue:T):T
+	{
+		if (field == null)
+			return defaultValue;
+
+		try
+		{
+			final result:Dynamic = field.get();
+			return result != null ? cast result : defaultValue;
+		}
+		catch (_:Dynamic)
+		{
+			return defaultValue;
+		}
+	}
+
+	public static function safeGetMemberField<T>(field:Null<Dynamic>, handle:Null<Dynamic>, defaultValue:T):T
+	{
+		if (field == null || handle == null)
+			return defaultValue;
+
+		try
+		{
+			final result:Dynamic = field.get(handle);
 			return result != null ? cast result : defaultValue;
 		}
 		catch (_:Dynamic)
