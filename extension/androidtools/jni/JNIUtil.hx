@@ -1,31 +1,120 @@
 package extension.androidtools.jni;
 
+#if (!android && !native)
+#error 'extension-androidtools is not supported on your current platform'
+#end
+
 import lime.system.JNI;
 
 class JNIUtil
 {
-	/**
-	 * Retrieves the absolute path from a given File object.
-	 *
-	 * @param handle A File object for which to retrieve the absolute path.
-	 *
-	 * @return The absolute path of the File object.
-	 */
 	public static function getAbsolutePath(handle:Null<Dynamic>):String
 	{
-		if (handle != null)
+		if (handle == null)
+			return '';
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'getAbsolutePath', '()Ljava/lang/String;');
+		if (method == null)
+			return '';
+
+		final path:Null<String> = JNI.callMember(method, handle, []);
+		return path != null ? path : '';
+	}
+
+	public static function exists(handle:Null<Dynamic>):Bool
+	{
+		if (handle == null)
+			return false;
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'exists', '()Z');
+		if (method == null)
+			return false;
+
+		final result:Null<Bool> = JNI.callMember(method, handle, []);
+		return result != null ? result : false;
+	}
+
+	public static function isDirectory(handle:Null<Dynamic>):Bool
+	{
+		if (handle == null)
+			return false;
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'isDirectory', '()Z');
+		if (method == null)
+			return false;
+
+		final result:Null<Bool> = JNI.callMember(method, handle, []);
+		return result != null ? result : false;
+	}
+
+	public static function getCanonicalPath(handle:Null<Dynamic>):String
+	{
+		if (handle == null)
+			return '';
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'getCanonicalPath', '()Ljava/lang/String;');
+		if (method == null)
+			return '';
+
+		final path:Null<String> = JNI.callMember(method, handle, []);
+		return path != null ? path : '';
+	}
+
+	public static function getName(handle:Null<Dynamic>):String
+	{
+		if (handle == null)
+			return '';
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'getName', '()Ljava/lang/String;');
+		if (method == null)
+			return '';
+
+		final name:Null<String> = JNI.callMember(method, handle, []);
+		return name != null ? name : '';
+	}
+
+	public static function getParent(handle:Null<Dynamic>):String
+	{
+		if (handle == null)
+			return '';
+
+		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'getParent', '()Ljava/lang/String;');
+		if (method == null)
+			return '';
+
+		final parent:Null<String> = JNI.callMember(method, handle, []);
+		return parent != null ? parent : '';
+	}
+
+	public static function safeCallMember<T>(method:Null<Dynamic>, handle:Null<Dynamic>, args:Array<Dynamic>, defaultValue:T):T
+	{
+		if (method == null || handle == null)
+			return defaultValue;
+
+		try
 		{
-			final getAbsolutePathMemberJNI:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'getAbsolutePath', '()Ljava/lang/String;');
-
-			if (getAbsolutePathMemberJNI != null)
-			{
-				final getAbsolutePathJNI:Null<Dynamic> = JNI.callMember(getAbsolutePathMemberJNI, handle, []);
-
-				if (getAbsolutePathJNI != null)
-					return getAbsolutePathJNI;
-			}
+			final result:Dynamic = JNI.callMember(method, handle, args != null ? args : []);
+			return result != null ? cast result : defaultValue;
 		}
+		catch (_:Dynamic)
+		{
+			return defaultValue;
+		}
+	}
 
-		return '';
+	public static function safeCallStatic<T>(method:Null<Dynamic>, args:Array<Dynamic>, defaultValue:T):T
+	{
+		if (method == null)
+			return defaultValue;
+
+		try
+		{
+			final result:Dynamic = JNI.callStatic(method, args != null ? args : []);
+			return result != null ? cast result : defaultValue;
+		}
+		catch (_:Dynamic)
+		{
+			return defaultValue;
+		}
 	}
 }
