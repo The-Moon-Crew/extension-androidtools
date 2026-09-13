@@ -3,27 +3,68 @@ package extension.androidtools;
 #if (!android && !native)
 #error 'extension-androidtools is not supported on your current platform'
 #end
+
 import extension.androidtools.jni.JNICache;
+import extension.androidtools.jni.JNIUtil;
 
 using StringTools;
 
-/**
- * A utility class for interacting with Android settings via JNI.
- */
 class Settings
 {
-	/** 
-	 * Requests a specific Android setting using JNI.
-	 *
-	 * @param setting The name of the setting. If it does not start with 'android.settings.',
-	 *                it will be prefixed with that string automatically.
-	 * @param requestCode The request code to be passed to the JNI method.
-	 */
-	public static inline function requestSetting(setting:String, requestCode:Int = 1):Void
-	{
-		final requestSettingJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'requestSetting', '(Ljava/lang/String;I)V');
+	public static final ACTION_SETTINGS:String = 'android.settings.SETTINGS';
+	public static final ACTION_APPLICATION_DETAILS_SETTINGS:String = 'android.settings.APPLICATION_DETAILS_SETTINGS';
+	public static final ACTION_LOCATION_SOURCE_SETTINGS:String = 'android.settings.LOCATION_SOURCE_SETTINGS';
+	public static final ACTION_WIFI_SETTINGS:String = 'android.settings.WIFI_SETTINGS';
+	public static final ACTION_BLUETOOTH_SETTINGS:String = 'android.settings.BLUETOOTH_SETTINGS';
+	public static final ACTION_DISPLAY_SETTINGS:String = 'android.settings.DISPLAY_SETTINGS';
+	public static final ACTION_SOUND_SETTINGS:String = 'android.settings.SOUND_SETTINGS';
+	public static final ACTION_INTERNAL_STORAGE_SETTINGS:String = 'android.settings.INTERNAL_STORAGE_SETTINGS';
 
-		if (requestSettingJNI != null)
-			requestSettingJNI(!setting.startsWith('android.settings.') ? 'android.settings.$setting' : setting, requestCode);
+	public static function requestSetting(setting:String, requestCode:Int = 1):Void
+	{
+		if (setting == null || setting.length == 0)
+			return;
+
+		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'requestSetting', '(Ljava/lang/String;I)V');
+		final formattedSetting:String = formatSetting(setting);
+
+		JNIUtil.safeCallStatic(method, [formattedSetting, requestCode], null);
+	}
+
+	public static function openAppDetails(requestCode:Int = 1):Void
+	{
+		requestSetting(ACTION_APPLICATION_DETAILS_SETTINGS, requestCode);
+	}
+
+	public static function openLocationSettings(requestCode:Int = 1):Void
+	{
+		requestSetting(ACTION_LOCATION_SOURCE_SETTINGS, requestCode);
+	}
+
+	public static function openWifiSettings(requestCode:Int = 1):Void
+	{
+		requestSetting(ACTION_WIFI_SETTINGS, requestCode);
+	}
+
+	public static function openBluetoothSettings(requestCode:Int = 1):Void
+	{
+		requestSetting(ACTION_BLUETOOTH_SETTINGS, requestCode);
+	}
+
+	public static function openSoundSettings(requestCode:Int = 1):Void
+	{
+		requestSetting(ACTION_SOUND_SETTINGS, requestCode);
+	}
+
+	public static function formatSetting(setting:String):String
+	{
+		if (setting == null)
+			return '';
+
+		final trimmed:String = setting.trim();
+		if (trimmed.startsWith('android.settings.'))
+			return trimmed;
+
+		return 'android.settings.${trimmed}';
 	}
 }
