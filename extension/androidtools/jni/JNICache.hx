@@ -179,6 +179,52 @@ class JNICache
 		return createMemberMethod(className, methodName, signature, true) != null;
 	}
 
+	public static function hasStaticField(className:String, fieldName:String, signature:String):Bool
+	{
+		return createStaticField(className, fieldName, signature, true) != null;
+	}
+
+	public static function hasMemberField(className:String, fieldName:String, signature:String):Bool
+	{
+		return createMemberField(className, fieldName, signature, true) != null;
+	}
+
+	public static function invalidateStaticMethod(className:String, methodName:String, signature:String):Bool
+	{
+		@:privateAccess
+		final formattedClass:String = JNI.transformClassName(className);
+		final key:String = '$formattedClass::$methodName::$signature';
+		return staticMethodCache.remove(key);
+	}
+
+	public static function invalidateMemberMethod(className:String, methodName:String, signature:String):Bool
+	{
+		@:privateAccess
+		final formattedClass:String = JNI.transformClassName(className);
+		final key:String = '$formattedClass::$methodName::$signature';
+		return memberMethodCache.remove(key);
+	}
+
+	public static function getStaticMethodCount():Int
+	{
+		return Lambda.count(staticMethodCache);
+	}
+
+	public static function getMemberMethodCount():Int
+	{
+		return Lambda.count(memberMethodCache);
+	}
+
+	public static function getStaticFieldCount():Int
+	{
+		return Lambda.count(staticFieldCache);
+	}
+
+	public static function getMemberFieldCount():Int
+	{
+		return Lambda.count(memberFieldCache);
+	}
+
 	public static function clearMethodCache():Void
 	{
 		staticMethodCache.clear();
