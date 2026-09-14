@@ -5,6 +5,7 @@ package extension;
 #end
 
 import extension.androidtools.Permissions;
+import extension.androidtools.Settings;
 import extension.androidtools.callback.CallBack;
 import extension.androidtools.callback.HelperBack;
 import extension.androidtools.content.Context;
@@ -15,6 +16,7 @@ import extension.androidtools.os.Build;
 
 class Android
 {
+	@:noCompletion
 	private static var _isInitialized:Bool = false;
 
 	public static function init():Void
@@ -27,7 +29,7 @@ class Android
 		_isInitialized = true;
 	}
 
-	public static function makeToastText(message:String, duration:Int = 0, gravity:Int = -1, xOffset:Int = 0, yOffset:Int = 0):Void
+	public static function makeToastText(message:Null<String>, duration:Int = 0, gravity:Int = -1, xOffset:Int = 0, yOffset:Int = 0):Void
 	{
 		if (message == null || message.length == 0)
 			return;
@@ -36,15 +38,19 @@ class Android
 		JNIUtil.safeCallStatic(method, [message, duration, gravity, xOffset, yOffset], null);
 	}
 
-	public static function showAlertDialog(title:String, message:String, positiveLabel:String = 'OK', ?onPositive:Void->Void, negativeLabel:String = null, ?onNegative:Void->Void):Void
+	public static function showAlertDialog(title:Null<String>, message:Null<String>, positiveLabel:Null<String> = 'OK', ?onPositive:Void->Void, negativeLabel:Null<String> = null, ?onNegative:Void->Void):Void
 	{
-		final posObj:Dynamic = onPositive != null ? new DialogCallbackHandler(onPositive) : null;
-		final negObj:Dynamic = onNegative != null ? new DialogCallbackHandler(onNegative) : null;
+		final safeTitle:String = title != null ? title : '';
+		final safeMessage:String = message != null ? message : '';
+		final safePositive:String = positiveLabel != null ? positiveLabel : 'OK';
+
+		final posObj:Null<Dynamic> = onPositive != null ? new DialogCallbackHandler(onPositive) : null;
+		final negObj:Null<Dynamic> = onNegative != null ? new DialogCallbackHandler(onNegative) : null;
 
 		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'showAlertDialog',
 			'(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/haxe/lime/HaxeObject;Ljava/lang/String;Lorg/haxe/lime/HaxeObject;)V');
 
-		JNIUtil.safeCallStatic(method, [title, message, positiveLabel, posObj, negativeLabel, negObj], null);
+		JNIUtil.safeCallStatic(method, [safeTitle, safeMessage, safePositive, posObj, negativeLabel, negObj], null);
 	}
 
 	public static function enableAppSecure():Void
@@ -67,6 +73,9 @@ class Android
 
 	public static function vibrate(milliseconds:Int):Void
 	{
+		if (milliseconds <= 0)
+			return;
+
 		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'vibrate', '(J)V');
 		JNIUtil.safeCallStatic(method, [cast(milliseconds, haxe.Int64)], null);
 	}
@@ -83,7 +92,7 @@ class Android
 		return JNIUtil.safeCallStatic(method, [], false);
 	}
 
-	public static function launchPackage(packageName:String, requestCode:Int = 1001):Void
+	public static function launchPackage(packageName:Null<String>, requestCode:Int = 1001):Void
 	{
 		if (packageName == null || packageName.length == 0)
 			return;
@@ -92,13 +101,12 @@ class Android
 		JNIUtil.safeCallStatic(method, [packageName, requestCode], null);
 	}
 
-	public static function requestSetting(setting:String, requestCode:Int = 1002):Void
+	public static function requestSetting(setting:Null<String>, requestCode:Int = 1002):Void
 	{
 		if (setting == null || setting.length == 0)
 			return;
 
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'requestSetting', '(Ljava/lang/String;I)V');
-		JNIUtil.safeCallStatic(method, [setting, requestCode], null);
+		Settings.requestSetting(setting, requestCode);
 	}
 
 	public static function isDolbyAtmos():Bool
@@ -107,11 +115,14 @@ class Android
 		return JNIUtil.safeCallStatic(method, [], false);
 	}
 
-	public static function showNotification(title:String, message:String, channelID:String = 'default', channelName:String = 'Default Channel', id:Int = 1):Void
+	public static function showNotification(title:Null<String>, message:Null<String>, channelID:String = 'default', channelName:String = 'Default Channel', id:Int = 1):Void
 	{
+		final safeTitle:String = title != null ? title : '';
+		final safeMessage:String = message != null ? message : '';
+
 		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'showNotification',
 			'(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V');
-		JNIUtil.safeCallStatic(method, [title, message, channelID, channelName, id], null);
+		JNIUtil.safeCallStatic(method, [safeTitle, safeMessage, channelID, channelName, id], null);
 	}
 
 	public static function getPackageName():String
@@ -124,12 +135,12 @@ class Android
 		return Context.getFilesDir();
 	}
 
-	public static function getExternalFilesDir(type:String = null):String
+	public static function getExternalFilesDir(type:Null<String> = null):String
 	{
 		return Context.getExternalFilesDir(type);
 	}
 
-	public static function getExternalFilesDirs(type:String = null):Array<String>
+	public static function getExternalFilesDirs(type:Null<String> = null):Array<String>
 	{
 		return Context.getExternalFilesDirs(type);
 	}
@@ -164,39 +175,47 @@ class Android
 		return Build.VERSION.SDK_INT;
 	}
 
-	public static function isPermissionGranted(permission:String):Bool
+	public static function isEmulator():Bool
 	{
-		return Permissions.isGranted(permission);
+		return Build.isEmulator();
 	}
 
-	public static function isPermissionGrantedAll(permissions:Array<String>):Bool
+	public static function isPermissionGranted(permission:Null<String>):Bool
 	{
-		return Permissions.isGrantedAll(permissions);
+		return permission != null && Permissions.isGranted(permission);
 	}
 
-	public static function isPermissionGrantedAny(permissions:Array<String>):Bool
+	public static function isPermissionGrantedAll(permissions:Null<Array<String>>):Bool
 	{
-		return Permissions.isGrantedAny(permissions);
+		return permissions != null && Permissions.isGrantedAll(permissions);
 	}
 
-	public static function getDeniedPermissions(permissions:Array<String>):Array<String>
+	public static function isPermissionGrantedAny(permissions:Null<Array<String>>):Bool
 	{
-		return Permissions.getDeniedPermissions(permissions);
+		return permissions != null && Permissions.isGrantedAny(permissions);
 	}
 
-	public static function requestPermissions(permissions:Array<String>, requestCode:Int = 1):Void
+	public static function getDeniedPermissions(permissions:Null<Array<String>>):Array<String>
 	{
-		Permissions.requestPermissions(permissions, requestCode);
+		return permissions != null ? Permissions.getDeniedPermissions(permissions) : [];
 	}
 
-	public static function requestPermissionsAsync(permissions:Array<String>, requestCode:Int = 1, onComplete:CallBack.PermissionResultData->Void):Void
+	public static function requestPermissions(permissions:Null<Array<String>>, requestCode:Int = 1):Void
 	{
-		Permissions.requestPermissionsAsync(permissions, requestCode, onComplete);
+		if (permissions != null && permissions.length > 0)
+			Permissions.requestPermissions(permissions, requestCode);
 	}
 
-	public static function requestPermissionsWithFallback(permissions:Array<String>, requestCode:Int = 1, onGranted:Void->Void, onDenied:Array<String>->Void):Void
+	public static function requestPermissionsAsync(permissions:Null<Array<String>>, requestCode:Int = 1, onComplete:CallBack.PermissionResultData->Void):Void
 	{
-		Permissions.requestPermissionsWithFallback(permissions, requestCode, onGranted, onDenied);
+		if (permissions != null && permissions.length > 0)
+			Permissions.requestPermissionsAsync(permissions, requestCode, onComplete);
+	}
+
+	public static function requestPermissionsWithFallback(permissions:Null<Array<String>>, requestCode:Int = 1, onGranted:Void->Void, onDenied:Array<String>->Void):Void
+	{
+		if (permissions != null && permissions.length > 0)
+			Permissions.requestPermissionsWithFallback(permissions, requestCode, onGranted, onDenied);
 	}
 
 	public static function isExternalStorageManager():Bool
