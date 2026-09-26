@@ -7,6 +7,8 @@ package extension.androidtools.os;
 import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
 
+using StringTools;
+
 class Build
 {
 	public static final TAG:String = 'Build';
@@ -95,9 +97,9 @@ class Build
 		if (VERSION.SDK_INT >= VERSION_CODES.S)
 		{
 			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build', 'ODM_SKU', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var PRODUCT(get, never):String;
@@ -113,9 +115,9 @@ class Build
 		if (VERSION.SDK_INT >= VERSION_CODES.S)
 		{
 			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build', 'SKU', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var SOC_MANUFACTURER(get, never):String;
@@ -124,9 +126,9 @@ class Build
 		if (VERSION.SDK_INT >= VERSION_CODES.S)
 		{
 			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build', 'SOC_MANUFACTURER', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var SOC_MODEL(get, never):String;
@@ -135,9 +137,9 @@ class Build
 		if (VERSION.SDK_INT >= VERSION_CODES.S)
 		{
 			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build', 'SOC_MODEL', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var SUPPORTED_ABIS(get, never):Array<String>;
@@ -184,7 +186,7 @@ class Build
 	private static inline function get_TIME():haxe.Int64
 	{
 		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build', 'TIME', 'J');
-		return JNIUtil.safeGetStaticField(field, cast(0, haxe.Int64));
+		return JNIUtil.safeGetStaticField(field, haxe.Int64.ofInt(0));
 	}
 
 	public static var TYPE(get, never):String;
@@ -212,21 +214,21 @@ class VERSION
 	public static var BASE_OS(get, never):String;
 	private static inline function get_BASE_OS():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'BASE_OS', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'BASE_OS', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 
 	public static var CODENAME(get, never):String;
 	private static inline function get_CODENAME():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'CODENAME', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'CODENAME', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 
 	public static var INCREMENTAL(get, never):String;
 	private static inline function get_INCREMENTAL():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'INCREMENTAL', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'INCREMENTAL', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 
@@ -235,7 +237,7 @@ class VERSION
 	{
 		if (VERSION_INT >= VERSION_CODES.S)
 		{
-			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'MEDIA_PERFORMANCE_CLASS', 'I');
+			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'MEDIA_PERFORMANCE_CLASS', 'I');
 			return JNIUtil.safeGetStaticField(field, 0);
 		}
 		return 0;
@@ -244,14 +246,14 @@ class VERSION
 	public static var PREVIEW_SDK_INT(get, never):Int;
 	private static inline function get_PREVIEW_SDK_INT():Int
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'PREVIEW_SDK_INT', 'I');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'PREVIEW_SDK_INT', 'I');
 		return JNIUtil.safeGetStaticField(field, 0);
 	}
 
 	public static var RELEASE(get, never):String;
 	private static inline function get_RELEASE():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'RELEASE', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'RELEASE', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 
@@ -260,10 +262,10 @@ class VERSION
 	{
 		if (VERSION_INT >= VERSION_CODES.R)
 		{
-			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'RELEASE_OR_CODENAME', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'RELEASE_OR_CODENAME', 'Ljava/lang/String;');
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var RELEASE_OR_PREVIEW_DISPLAY(get, never):String;
@@ -271,23 +273,23 @@ class VERSION
 	{
 		if (VERSION_INT >= VERSION_CODES.TIRAMISU)
 		{
-			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'RELEASE_OR_PREVIEW_DISPLAY', 'Ljava/lang/String;');
-			return JNIUtil.safeGetStaticField(field, UNKNOWN);
+			final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'RELEASE_OR_PREVIEW_DISPLAY', 'Ljava/lang/String;');
+			return JNIUtil.safeGetStaticField(field, Build.UNKNOWN);
 		}
-		return UNKNOWN;
+		return Build.UNKNOWN;
 	}
 
 	public static var SDK(get, never):String;
 	private static inline function get_SDK():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'SDK', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'SDK', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 
 	public static var SDK_INT(get, never):Int;
 	private static inline function get_SDK_INT():Int
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'SDK_INT', 'I');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'SDK_INT', 'I');
 		return JNIUtil.safeGetStaticField(field, 0);
 	}
 
@@ -300,48 +302,48 @@ class VERSION
 	public static var SECURITY_PATCH(get, never):String;
 	private static inline function get_SECURITY_PATCH():String
 	{
-		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$VERSION', 'SECURITY_PATCH', 'Ljava/lang/String;');
+		final field:Null<Dynamic> = JNICache.createStaticField('android/os/Build$$VERSION', 'SECURITY_PATCH', 'Ljava/lang/String;');
 		return JNIUtil.safeGetStaticField(field, '');
 	}
 }
 
 class VERSION_CODES
 {
-	public static final BASE:Int = 1;
-	public static final BASE_1_1:Int = 2;
-	public static final CUPCAKE:Int = 3;
-	public static final DONUT:Int = 4;
-	public static final ECLAIR:Int = 5;
-	public static final ECLAIR_0_1:Int = 6;
-	public static final ECLAIR_MR1:Int = 7;
-	public static final FROYO:Int = 8;
-	public static final GINGERBREAD:Int = 9;
-	public static final GINGERBREAD_MR1:Int = 10;
-	public static final HONEYCOMB:Int = 11;
-	public static final HONEYCOMB_MR1:Int = 12;
-	public static final HONEYCOMB_MR2:Int = 13;
-	public static final ICE_CREAM_SANDWICH:Int = 14;
-	public static final ICE_CREAM_SANDWICH_MR1:Int = 15;
-	public static final JELLY_BEAN:Int = 16;
-	public static final JELLY_BEAN_MR1:Int = 17;
-	public static final JELLY_BEAN_MR2:Int = 18;
-	public static final KITKAT:Int = 19;
-	public static final KITKAT_WATCH:Int = 20;
-	public static final LOLLIPOP:Int = 21;
-	public static final LOLLIPOP_MR1:Int = 22;
-	public static final M:Int = 23;
-	public static final N:Int = 24;
-	public static final N_MR1:Int = 25;
-	public static final O:Int = 26;
-	public static final O_MR1:Int = 27;
-	public static final P:Int = 28;
-	public static final Q:Int = 29;
-	public static final R:Int = 30;
-	public static final S:Int = 31;
-	public static final S_V2:Int = 32;
-	public static final TIRAMISU:Int = 33;
-	public static final UPSIDE_DOWN_CAKE:Int = 34;
-	public static final VANILLA_ICE_CREAM:Int = 35;
-	public static final BAKLAVA:Int = 36;
-	public static final CINNAMON_BUN:Int = 37;
+	public static inline final BASE:Int = 1;
+	public static inline final BASE_1_1:Int = 2;
+	public static inline final CUPCAKE:Int = 3;
+	public static inline final DONUT:Int = 4;
+	public static inline final ECLAIR:Int = 5;
+	public static inline final ECLAIR_0_1:Int = 6;
+	public static inline final ECLAIR_MR1:Int = 7;
+	public static inline final FROYO:Int = 8;
+	public static inline final GINGERBREAD:Int = 9;
+	public static inline final GINGERBREAD_MR1:Int = 10;
+	public static inline final HONEYCOMB:Int = 11;
+	public static inline final HONEYCOMB_MR1:Int = 12;
+	public static inline final HONEYCOMB_MR2:Int = 13;
+	public static inline final ICE_CREAM_SANDWICH:Int = 14;
+	public static inline final ICE_CREAM_SANDWICH_MR1:Int = 15;
+	public static inline final JELLY_BEAN:Int = 16;
+	public static inline final JELLY_BEAN_MR1:Int = 17;
+	public static inline final JELLY_BEAN_MR2:Int = 18;
+	public static inline final KITKAT:Int = 19;
+	public static inline final KITKAT_WATCH:Int = 20;
+	public static inline final LOLLIPOP:Int = 21;
+	public static inline final LOLLIPOP_MR1:Int = 22;
+	public static inline final M:Int = 23;
+	public static inline final N:Int = 24;
+	public static inline final N_MR1:Int = 25;
+	public static inline final O:Int = 26;
+	public static inline final O_MR1:Int = 27;
+	public static inline final P:Int = 28;
+	public static inline final Q:Int = 29;
+	public static inline final R:Int = 30;
+	public static inline final S:Int = 31;
+	public static inline final S_V2:Int = 32;
+	public static inline final TIRAMISU:Int = 33;
+	public static inline final UPSIDE_DOWN_CAKE:Int = 34;
+	public static inline final VANILLA_ICE_CREAM:Int = 35;
+	public static inline final BAKLAVA:Int = 36;
+	public static inline final CINNAMON_BUN:Int = 37;
 }

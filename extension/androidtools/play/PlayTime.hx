@@ -1,42 +1,40 @@
-package extension.android.play;
+package extension.androidtools.play;
 
 #if (!android && !native)
 #error 'extension-androidtools is not supported on your current platform'
 #end
 
-import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
-import haxe.Int64;
 
 class PlayTime
 {
 	private static var _startTime:Float = 0;
+	private static var _running:Bool = false;
 
-	public static function getUptimeMillis():Int64
+	public static function getUptimeMillis():Float
 	{
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'getUptimeMillis', '()J');
-		final result:Dynamic = JNIUtil.safeCallStatic(method, [], cast(0, Int64));
-		return result != null ? cast result : cast(0, Int64);
+		return JNIUtil.callTools('getUptimeMillis', '()D', [], 0.0);
 	}
 
-	public static function getElapsedRealtime():Int64
+	public static function getElapsedRealtime():Float
 	{
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'getElapsedRealtime', '()J');
-		final result:Dynamic = JNIUtil.safeCallStatic(method, [], cast(0, Int64));
-		return result != null ? cast result : cast(0, Int64);
+		return JNIUtil.callTools('getElapsedRealtime', '()D', [], 0.0);
 	}
 
 	public static function startSession():Void
 	{
 		_startTime = haxe.Timer.stamp();
+		_running = true;
+	}
+
+	public static function isSessionRunning():Bool
+	{
+		return _running;
 	}
 
 	public static function getSessionDuration():Float
 	{
-		if (_startTime <= 0)
-			return 0;
-
-		return haxe.Timer.stamp() - _startTime;
+		return _running ? haxe.Timer.stamp() - _startTime : 0;
 	}
 
 	public static function getSessionDurationSeconds():Int
@@ -44,8 +42,16 @@ class PlayTime
 		return Math.floor(getSessionDuration());
 	}
 
+	public static function stopSession():Float
+	{
+		final duration:Float = getSessionDuration();
+		_running = false;
+		_startTime = 0;
+		return duration;
+	}
+
 	public static function resetSession():Void
 	{
-		_startTime = haxe.Timer.stamp();
+		startSession();
 	}
 }

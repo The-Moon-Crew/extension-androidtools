@@ -1,6 +1,9 @@
 package extension.androidtools.jni;
 
-#if android
+#if (!android && !native)
+#error 'extension-androidtools is not supported on your current platform'
+#end
+
 import lime.system.JNI;
 
 class JNICache
@@ -243,4 +246,3 @@ class JNICache
 		clearFieldCache();
 	}
 }
-#end

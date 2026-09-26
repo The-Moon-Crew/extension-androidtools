@@ -6,15 +6,16 @@ package extension.androidtools;
 
 import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
+import lime.system.JNI;
 
 class AndroidNative
 {
-	public static function runOnMainThread(callback:Void->Void):Void
+	public static function runOnMainThread(callback:Null<Void->Void>):Void
 	{
 		if (callback == null)
 			return;
 
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'runOnMainThread', '(Ljava/lang/Runnable;)V');
+		final method:Null<Dynamic> = JNICache.createStaticMethod(JNIUtil.TOOLS_CLASS, 'runOnMainThread', '(Lorg/haxe/lime/HaxeObject;)V');
 		if (method != null)
 			JNIUtil.safeCallStatic(method, [new MainThreadRunnable(callback)], null);
 		else
@@ -23,20 +24,22 @@ class AndroidNative
 
 	public static function isMainThread():Bool
 	{
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'isMainThread', '()Z');
-		return JNIUtil.safeCallStatic(method, [], true);
+		return JNIUtil.callTools('isMainThread', '()Z', [], true);
 	}
 
 	public static function getPackageName():String
 	{
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'getPackageName', '()Ljava/lang/String;');
-		return JNIUtil.safeCallStatic(method, [], '');
+		return JNIUtil.callTools('getPackageName', '()Ljava/lang/String;', [], '');
 	}
 
 	public static function getExternalStorageState():String
 	{
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'getExternalStorageState', '()Ljava/lang/String;');
-		return JNIUtil.safeCallStatic(method, [], '');
+		return JNIUtil.callTools('getExternalStorageState', '()Ljava/lang/String;', [], '');
+	}
+
+	public static function finishActivity():Void
+	{
+		JNIUtil.callTools('finishActivity', '()V', [], null);
 	}
 }
 

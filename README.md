@@ -15,6 +15,65 @@ Or through `Git`, if you want the latest updates
 haxelib git extension-androidtools https://github.com/The-Moon-Crew/extension-androidtools.git
 ```
 
+### Usage
+
+Add the library to your `project.xml`
+```xml
+<haxelib name="extension-androidtools" />
+```
+
+Call `Android.init()` once at startup if you use permission or activity result callbacks, then use the facade or the individual classes.
+
+```haxe
+import extension.Android;
+
+Android.init();
+
+Android.makeToastText('Hello');
+Android.vibrate(200);
+
+if (Android.isNetworkAvailable() && Android.isPackageInstalled('com.android.chrome'))
+	Android.openUrl('https://lime.openfl.org');
+
+Android.requestPermissionsWithFallback(['CAMERA'], 1, function():Void {
+	Android.makeToastText('Camera granted');
+}, function(denied:Array<String>):Void {
+	Android.makeToastText('Denied: ' + denied.join(', '));
+});
+```
+
+### Classes
+
+| Class | Purpose |
+| --- | --- |
+| `extension.Android` | Facade with the most common functions |
+| `extension.Content` | Application directories and storage state |
+| `androidtools.Permissions` | Runtime permissions, sync and async |
+| `androidtools.Settings` | Open system settings screens |
+| `androidtools.callback.CallBack` / `HelperBack` | Activity result and permission result events |
+| `androidtools.app.Notifications` | Show, cancel and check notifications |
+| `androidtools.content.Context` | Files, cache and OBB directories |
+| `androidtools.content.Clipboard` | Read and write clipboard text |
+| `androidtools.content.Intents` | Open URLs, share text, launch packages |
+| `androidtools.content.PackageManager` | Installed packages and version info |
+| `androidtools.media.AudioManager` | Volume, ringer mode, audio focus |
+| `androidtools.media.MediaImage` | Save to gallery, image size and orientation |
+| `androidtools.net.Network` | Connectivity type and availability |
+| `androidtools.os.Build` | `android.os.Build` fields |
+| `androidtools.os.Environment` | `android.os.Environment` paths and state |
+| `androidtools.os.Battery` | Level, charging, temperature, power save |
+| `androidtools.os.Vibrator` | Vibrate and cancel |
+| `androidtools.os.DeviceInfo` | Memory, storage, CPU count, root, locale |
+| `androidtools.view.Display` | Size, density, refresh rate, orientation, brightness, immersive mode |
+| `androidtools.play.PlayTime` | Uptime and session timer |
+| `androidtools.widget.Toast` | Toast messages |
+
+### Manifest permissions
+
+The library manifest declares `VIBRATE`, `ACCESS_NETWORK_STATE` and `MODIFY_AUDIO_SETTINGS`. Anything else your app uses, such as `CAMERA`, `RECORD_AUDIO` or storage access, must be declared in your own project.
+
+On Android 11 and newer, `isPackageInstalled` and `launchPackage` only see packages that your manifest makes visible through `<queries>` or `QUERY_ALL_PACKAGES`.
+
 ## Licensing
 
 **extension-androidtools** is made available under the **MIT License**. Check [LICENSE](./LICENSE) for more information.

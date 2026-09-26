@@ -9,10 +9,10 @@
 		"jni"
 	],
 	"description": "A Haxe/Lime extension that incorporates Java functions through JNI.",
-	"version": "2.2.2",
-	"releasenote": "Some cleanup.",
+	"version": "2.3.0",
+	"releasenote": "Fix Java and Haxe compile errors, add display, network, clipboard, intents, package, battery, vibrator, device info and notification helpers.",
 	"contributors": [
-		"MAJigsaw77"
+		"Brenninho123"
 	],
 	"dependencies": {
 		"hxcpp":"",

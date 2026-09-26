@@ -4,15 +4,29 @@ package extension;
 #error 'extension-androidtools is not supported on your current platform'
 #end
 
+import extension.androidtools.AndroidNative;
 import extension.androidtools.Permissions;
 import extension.androidtools.Settings;
+import extension.androidtools.app.Notifications;
 import extension.androidtools.callback.CallBack;
+import extension.androidtools.callback.CallBack.PermissionResultData;
 import extension.androidtools.callback.HelperBack;
+import extension.androidtools.content.Clipboard;
 import extension.androidtools.content.Context;
+import extension.androidtools.content.Intents;
+import extension.androidtools.content.PackageManager;
 import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
 import extension.androidtools.media.AudioManager;
+import extension.androidtools.media.MediaImage;
+import extension.androidtools.net.Network;
+import extension.androidtools.os.Battery;
 import extension.androidtools.os.Build;
+import extension.androidtools.os.Build.VERSION;
+import extension.androidtools.os.DeviceInfo;
+import extension.androidtools.os.Vibrator;
+import extension.androidtools.view.Display;
+import lime.system.JNI;
 
 class Android
 {
@@ -73,11 +87,17 @@ class Android
 
 	public static function vibrate(milliseconds:Int):Void
 	{
-		if (milliseconds <= 0)
-			return;
+		Vibrator.vibrate(milliseconds);
+	}
 
-		final method:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Tools', 'vibrate', '(J)V');
-		JNIUtil.safeCallStatic(method, [cast(milliseconds, haxe.Int64)], null);
+	public static function cancelVibration():Void
+	{
+		Vibrator.cancel();
+	}
+
+	public static function hasVibrator():Bool
+	{
+		return Vibrator.hasVibrator();
 	}
 
 	public static function getBatteryLevel():Int
@@ -172,7 +192,7 @@ class Android
 
 	public static function getSDKVersion():Int
 	{
-		return Build.VERSION.SDK_INT;
+		return VERSION.SDK_INT;
 	}
 
 	public static function isEmulator():Bool
@@ -206,7 +226,7 @@ class Android
 			Permissions.requestPermissions(permissions, requestCode);
 	}
 
-	public static function requestPermissionsAsync(permissions:Null<Array<String>>, requestCode:Int = 1, onComplete:CallBack.PermissionResultData->Void):Void
+	public static function requestPermissionsAsync(permissions:Null<Array<String>>, requestCode:Int = 1, onComplete:PermissionResultData->Void):Void
 	{
 		if (permissions != null && permissions.length > 0)
 			Permissions.requestPermissionsAsync(permissions, requestCode, onComplete);
@@ -281,6 +301,201 @@ class Android
 	public static function abandonAudioFocus():Int
 	{
 		return AudioManager.abandonAudioFocus();
+	}
+
+	public static function getBatteryTemperature():Float
+	{
+		return Battery.getTemperature();
+	}
+
+	public static function isPowerSaveMode():Bool
+	{
+		return Battery.isPowerSaveMode();
+	}
+
+	public static function isRooted():Bool
+	{
+		return DeviceInfo.isRooted();
+	}
+
+	public static function isDarkMode():Bool
+	{
+		return DeviceInfo.isDarkMode();
+	}
+
+	public static function getLocale():String
+	{
+		return DeviceInfo.getLocale();
+	}
+
+	public static function getTimeZoneId():String
+	{
+		return DeviceInfo.getTimeZoneId();
+	}
+
+	public static function getTotalMemory():Float
+	{
+		return DeviceInfo.getTotalMemory();
+	}
+
+	public static function getAvailableMemory():Float
+	{
+		return DeviceInfo.getAvailableMemory();
+	}
+
+	public static function isLowRamDevice():Bool
+	{
+		return DeviceInfo.isLowRamDevice();
+	}
+
+	public static function getTotalStorage(external:Bool = false):Float
+	{
+		return DeviceInfo.getTotalStorage(external);
+	}
+
+	public static function getFreeStorage(external:Bool = false):Float
+	{
+		return DeviceInfo.getFreeStorage(external);
+	}
+
+	public static function getProcessorCount():Int
+	{
+		return DeviceInfo.getProcessorCount();
+	}
+
+	public static function hasSystemFeature(feature:Null<String>):Bool
+	{
+		return DeviceInfo.hasSystemFeature(feature);
+	}
+
+	public static function getScreenWidth():Int
+	{
+		return Display.getWidth();
+	}
+
+	public static function getScreenHeight():Int
+	{
+		return Display.getHeight();
+	}
+
+	public static function getScreenDpi():Int
+	{
+		return Display.getDpi();
+	}
+
+	public static function getScreenDensity():Float
+	{
+		return Display.getDensity();
+	}
+
+	public static function getRefreshRate():Float
+	{
+		return Display.getRefreshRate();
+	}
+
+	public static function getScreenOrientation():Int
+	{
+		return Display.getOrientation();
+	}
+
+	public static function setScreenOrientation(orientation:Int):Void
+	{
+		Display.setOrientation(orientation);
+	}
+
+	public static function getScreenBrightness():Int
+	{
+		return Display.getBrightness();
+	}
+
+	public static function setScreenBrightness(percent:Int):Void
+	{
+		Display.setBrightness(percent);
+	}
+
+	public static function setImmersiveMode(enable:Bool):Void
+	{
+		Display.setImmersiveMode(enable);
+	}
+
+	public static function getNetworkType():String
+	{
+		return Network.getType();
+	}
+
+	public static function isNetworkAvailable():Bool
+	{
+		return Network.isAvailable();
+	}
+
+	public static function isWifiConnected():Bool
+	{
+		return Network.isWifiConnected();
+	}
+
+	public static function setClipboardText(text:Null<String>):Void
+	{
+		Clipboard.setText(text);
+	}
+
+	public static function getClipboardText():String
+	{
+		return Clipboard.getText();
+	}
+
+	public static function hasClipboardText():Bool
+	{
+		return Clipboard.hasText();
+	}
+
+	public static function openUrl(url:Null<String>):Bool
+	{
+		return Intents.openUrl(url);
+	}
+
+	public static function shareText(text:Null<String>, title:Null<String> = 'Share'):Void
+	{
+		Intents.shareText(text, title);
+	}
+
+	public static function isPackageInstalled(packageName:Null<String>):Bool
+	{
+		return PackageManager.isPackageInstalled(packageName);
+	}
+
+	public static function getVersionName(packageName:Null<String> = null):String
+	{
+		return PackageManager.getVersionName(packageName);
+	}
+
+	public static function getVersionCode(packageName:Null<String> = null):Int
+	{
+		return PackageManager.getVersionCode(packageName);
+	}
+
+	public static function cancelNotification(id:Int = 1):Void
+	{
+		Notifications.cancel(id);
+	}
+
+	public static function cancelAllNotifications():Void
+	{
+		Notifications.cancelAll();
+	}
+
+	public static function areNotificationsEnabled():Bool
+	{
+		return Notifications.areEnabled();
+	}
+
+	public static function saveImageToGallery(filePath:Null<String>):Bool
+	{
+		return filePath != null && MediaImage.saveImageToGallery(filePath);
+	}
+
+	public static function finishActivity():Void
+	{
+		AndroidNative.finishActivity();
 	}
 }
 

@@ -8,6 +8,13 @@ import lime.system.JNI;
 
 class JNIUtil
 {
+	public static final TOOLS_CLASS:String = 'org/haxe/extension/Tools';
+
+	public static function callTools<T>(methodName:String, signature:String, args:Null<Array<Dynamic>>, defaultValue:T):T
+	{
+		return safeCallStatic(JNICache.createStaticMethod(TOOLS_CLASS, methodName, signature), args, defaultValue);
+	}
+
 	public static function getAbsolutePath(handle:Null<Dynamic>):String
 	{
 		if (handle == null)
@@ -90,10 +97,10 @@ class JNIUtil
 	public static function length(handle:Null<Dynamic>):haxe.Int64
 	{
 		if (handle == null)
-			return cast(0, haxe.Int64);
+			return haxe.Int64.ofInt(0);
 
 		final method:Null<Dynamic> = JNICache.createMemberMethod('java/io/File', 'length', '()J');
-		return safeCallMember(method, handle, [], cast(0, haxe.Int64));
+		return safeCallMember(method, handle, [], haxe.Int64.ofInt(0));
 	}
 
 	public static function safeCallMember<T>(method:Null<Dynamic>, handle:Null<Dynamic>, args:Null<Array<Dynamic>>, defaultValue:T):T

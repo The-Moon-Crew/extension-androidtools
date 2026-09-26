@@ -5,14 +5,15 @@ package extension.androidtools.callback;
 #end
 
 import extension.androidtools.callback.CallBack;
-import lime.app.Event;
 
-typedef ActivityCallbackFilter = {
+typedef ActivityCallbackFilter =
+{
 	var requestCode:Int;
 	var callback:ActivityResultData->Void;
 }
 
-typedef PermissionCallbackFilter = {
+typedef PermissionCallbackFilter =
+{
 	var requestCode:Int;
 	var callback:PermissionResultData->Void;
 }
@@ -21,6 +22,8 @@ class HelperBack
 {
 	private static final _activityListeners:Map<Int, Array<ActivityResultData->Void>> = new Map();
 	private static final _permissionListeners:Map<Int, Array<PermissionResultData->Void>> = new Map();
+	private static final _activityOnce:Map<Int, Array<ActivityResultData->Void>> = new Map();
+	private static final _permissionOnce:Map<Int, Array<PermissionResultData->Void>> = new Map();
 	private static var _isListening:Bool = false;
 
 	public static function init():Void
@@ -38,100 +41,105 @@ class HelperBack
 	public static function addActivityListener(requestCode:Int, callback:ActivityResultData->Void):Void
 	{
 		init();
-		
-		if (!_activityListeners.exists(requestCode))
-			_activityListeners.set(requestCode, []);
-
-		final list = _activityListeners.get(requestCode);
-		if (!list.contains(callback))
-			list.push(callback);
+		_register(_activityListeners, requestCode, callback);
 	}
 
 	public static function removeActivityListener(requestCode:Int, callback:ActivityResultData->Void):Void
 	{
-		if (!_activityListeners.exists(requestCode))
-			return;
-
-		final list = _activityListeners.get(requestCode);
-		list.remove(callback);
-
-		if (list.length == 0)
-			_activityListeners.remove(requestCode);
+		_unregister(_activityListeners, requestCode, callback);
+		_unregister(_activityOnce, requestCode, callback);
 	}
 
 	public static function addPermissionListener(requestCode:Int, callback:PermissionResultData->Void):Void
 	{
 		init();
-
-		if (!_permissionListeners.exists(requestCode))
-			_permissionListeners.set(requestCode, []);
-
-		final list = _permissionListeners.get(requestCode);
-		if (!list.contains(callback))
-			list.push(callback);
+		_register(_permissionListeners, requestCode, callback);
 	}
 
 	public static function removePermissionListener(requestCode:Int, callback:PermissionResultData->Void):Void
 	{
-		if (!_permissionListeners.exists(requestCode))
-			return;
-
-		final list = _permissionListeners.get(requestCode);
-		list.remove(callback);
-
-		if (list.length == 0)
-			_permissionListeners.remove(requestCode);
+		_unregister(_permissionListeners, requestCode, callback);
+		_unregister(_permissionOnce, requestCode, callback);
 	}
 
 	public static function onceActivityResult(requestCode:Int, callback:ActivityResultData->Void):Void
 	{
-		var wrapper:ActivityResultData->Void = null;
-		wrapper = function(data:ActivityResultData):Void {
-			removeActivityListener(requestCode, wrapper);
-			callback(data);
-		};
-		addActivityListener(requestCode, wrapper);
+		init();
+		_register(_activityOnce, requestCode, callback);
 	}
 
 	public static function oncePermissionResult(requestCode:Int, callback:PermissionResultData->Void):Void
 	{
-		var wrapper:PermissionResultData->Void = null;
-		wrapper = function(data:PermissionResultData):Void {
-			removePermissionListener(requestCode, wrapper);
-			callback(data);
-		};
-		addPermissionListener(requestCode, wrapper);
+		init();
+		_register(_permissionOnce, requestCode, callback);
 	}
 
 	public static function clearAll():Void
 	{
 		_activityListeners.clear();
 		_permissionListeners.clear();
+		_activityOnce.clear();
+		_permissionOnce.clear();
+	}
+
+	private static function _register<T>(listeners:Map<Int, Array<T>>, requestCode:Int, callback:T):Void
+	{
+		var list:Null<Array<T>> = listeners.get(requestCode);
+		if (list == null)
+		{
+			list = [];
+			listeners.set(requestCode, list);
+		}
+
+		if (list.indexOf(callback) == -1)
+			list.push(callback);
+	}
+
+	private static function _unregister<T>(listeners:Map<Int, Array<T>>, requestCode:Int, callback:T):Void
+	{
+		final list:Null<Array<T>> = listeners.get(requestCode);
+		if (list == null)
+			return;
+
+		list.remove(callback);
+
+		if (list.length == 0)
+			listeners.remove(requestCode);
+	}
+
+	private static function _take<T>(listeners:Map<Int, Array<T>>, requestCode:Int):Array<T>
+	{
+		final list:Null<Array<T>> = listeners.get(requestCode);
+		if (list == null)
+			return [];
+
+		listeners.remove(requestCode);
+		return list;
 	}
 
 	private static function _dispatchActivity(data:ActivityResultData):Void
 	{
-		if (data == null || !_activityListeners.exists(data.requestCode))
-			return;
-
-		final list = _activityListeners.get(data.requestCode).copy();
-		for (listener in list)
+		final persistent:Null<Array<ActivityResultData->Void>> = _activityListeners.get(data.requestCode);
+		if (persistent != null)
 		{
-			if (listener != null)
+			for (listener in persistent.copy())
 				listener(data);
 		}
+
+		for (listener in _take(_activityOnce, data.requestCode))
+			listener(data);
 	}
 
 	private static function _dispatchPermission(data:PermissionResultData):Void
 	{
-		if (data == null || !_permissionListeners.exists(data.requestCode))
-			return;
-
-		final list = _permissionListeners.get(data.requestCode).copy();
-		for (listener in list)
+		final persistent:Null<Array<PermissionResultData->Void>> = _permissionListeners.get(data.requestCode);
+		if (persistent != null)
 		{
-			if (listener != null)
+			for (listener in persistent.copy())
 				listener(data);
 		}
+
+		for (listener in _take(_permissionOnce, data.requestCode))
+			listener(data);
 	}
 }
