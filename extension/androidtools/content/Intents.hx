@@ -24,6 +24,11 @@ class Intents
 		JNIUtil.callTools('shareText', '(Ljava/lang/String;Ljava/lang/String;)V', [title != null ? title : 'Share', text], null);
 	}
 
+	public static function getLaunchUri():String
+	{
+		return JNIUtil.callTools('getLaunchUri', '()Ljava/lang/String;', [], '');
+	}
+
 	public static function launchPackage(packageName:Null<String>, requestCode:Int = 1001):Void
 	{
 		if (packageName == null || packageName.length == 0)

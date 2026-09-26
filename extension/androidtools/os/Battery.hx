@@ -4,10 +4,26 @@ package extension.androidtools.os;
 #error 'extension-androidtools is not supported on your current platform'
 #end
 
+import extension.androidtools.callback.CallBack;
+import extension.androidtools.callback.CallBack.BatteryChangedData;
 import extension.androidtools.jni.JNIUtil;
+import lime.app.Event;
 
 class Battery
 {
+	public static final onChanged:Event<BatteryChangedData->Void> = CallBack.onBatteryChanged;
+
+	public static function startMonitor():Bool
+	{
+		CallBack.init();
+		return JNIUtil.callJava(JNIUtil.MONITOR_CLASS, 'startBatteryMonitor', '()Z', [], false);
+	}
+
+	public static function stopMonitor():Void
+	{
+		JNIUtil.callJava(JNIUtil.MONITOR_CLASS, 'stopBatteryMonitor', '()V', [], null);
+	}
+
 	public static function getLevel():Int
 	{
 		return JNIUtil.callTools('getBatteryLevel', '()I', [], -1);

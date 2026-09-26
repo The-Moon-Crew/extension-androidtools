@@ -24,6 +24,21 @@ class Settings
 	public static final ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION:String = 'android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION';
 	public static final ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION:String = 'android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION';
 
+	public static function openNotificationSettings(requestCode:Int = 1):Void
+	{
+		JNIUtil.callTools('openNotificationSettings', '(I)V', [requestCode], null);
+	}
+
+	public static function openBatteryOptimizationSettings(requestCode:Int = 1):Void
+	{
+		JNIUtil.callTools('openBatteryOptimizationSettings', '(I)V', [requestCode], null);
+	}
+
+	public static function isIgnoringBatteryOptimizations():Bool
+	{
+		return JNIUtil.callTools('isIgnoringBatteryOptimizations', '()Z', [], true);
+	}
+
 	public static function requestSetting(setting:String, requestCode:Int = 1):Void
 	{
 		if (setting == null || setting.length == 0)

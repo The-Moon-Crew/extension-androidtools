@@ -8,11 +8,13 @@ import extension.androidtools.AndroidNative;
 import extension.androidtools.Permissions;
 import extension.androidtools.Settings;
 import extension.androidtools.app.Notifications;
+import extension.androidtools.app.Notifications.NotificationOptions;
 import extension.androidtools.callback.CallBack;
 import extension.androidtools.callback.CallBack.PermissionResultData;
 import extension.androidtools.callback.HelperBack;
 import extension.androidtools.content.Clipboard;
 import extension.androidtools.content.Context;
+import extension.androidtools.content.Documents;
 import extension.androidtools.content.Intents;
 import extension.androidtools.content.PackageManager;
 import extension.androidtools.jni.JNICache;
@@ -26,6 +28,7 @@ import extension.androidtools.os.Build.VERSION;
 import extension.androidtools.os.DeviceInfo;
 import extension.androidtools.os.Vibrator;
 import extension.androidtools.view.Display;
+import extension.androidtools.view.Display.SafeInsets;
 import lime.system.JNI;
 
 class Android
@@ -496,6 +499,31 @@ class Android
 	public static function finishActivity():Void
 	{
 		AndroidNative.finishActivity();
+	}
+
+	public static function vibratePattern(timings:Null<Array<Int>>, repeat:Int = -1):Void
+	{
+		Vibrator.vibratePattern(timings, repeat);
+	}
+
+	public static function haptic(feedback:Int = Vibrator.HAPTIC_VIRTUAL_KEY):Void
+	{
+		Vibrator.haptic(feedback);
+	}
+
+	public static function getSafeInsets():SafeInsets
+	{
+		return Display.getSafeInsets();
+	}
+
+	public static function showNotificationAdvanced(options:NotificationOptions):Void
+	{
+		Notifications.showAdvanced(options);
+	}
+
+	public static function pickFile(onResult:Array<String>->Void, mime:String = '*/*', multiple:Bool = false):Void
+	{
+		Documents.pickFile(onResult, mime, multiple);
 	}
 }
 

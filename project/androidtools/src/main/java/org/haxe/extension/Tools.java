@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -44,6 +45,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.DisplayCutout;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -82,6 +84,21 @@ public class Tools extends Extension
 	public static void initCallBack(final HaxeObject cbObject)
 	{
 		Tools.cbObject = cbObject;
+	}
+
+	public static void dispatch(final String function, final JSONObject content)
+	{
+		if (cbObject == null)
+			return;
+
+		try
+		{
+			cbObject.call(function, new Object[]{content.toString()});
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
 	}
 
 	private static boolean isUiThread()
@@ -741,6 +758,80 @@ public class Tools extends Extension
 		return mainActivity.getWindowManager().getDefaultDisplay().getRefreshRate();
 	}
 
+	@SuppressWarnings("deprecation")
+	public static String getSafeInsets()
+	{
+		return callOnUiThread(new Callable<String>()
+		{
+			@Override
+			public String call() throws Exception
+			{
+				int left = 0;
+				int top = 0;
+				int right = 0;
+				int bottom = 0;
+
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+				{
+					final WindowInsets insets = mainActivity.getWindow().getDecorView().getRootWindowInsets();
+					if (insets != null)
+					{
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+						{
+							final android.graphics.Insets safe = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+							left = safe.left;
+							top = safe.top;
+							right = safe.right;
+							bottom = safe.bottom;
+						}
+						else
+						{
+							left = insets.getSystemWindowInsetLeft();
+							top = insets.getSystemWindowInsetTop();
+							right = insets.getSystemWindowInsetRight();
+							bottom = insets.getSystemWindowInsetBottom();
+
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+							{
+								final DisplayCutout cutout = insets.getDisplayCutout();
+								if (cutout != null)
+								{
+									left = Math.max(left, cutout.getSafeInsetLeft());
+									top = Math.max(top, cutout.getSafeInsetTop());
+									right = Math.max(right, cutout.getSafeInsetRight());
+									bottom = Math.max(bottom, cutout.getSafeInsetBottom());
+								}
+							}
+						}
+					}
+				}
+
+				final JSONObject result = new JSONObject();
+				result.put("left", left);
+				result.put("top", top);
+				result.put("right", right);
+				result.put("bottom", bottom);
+				return result.toString();
+			}
+		}, "{}");
+	}
+
+	public static boolean hasDisplayCutout()
+	{
+		return callOnUiThread(new Callable<Boolean>()
+		{
+			@Override
+			public Boolean call() throws Exception
+			{
+				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+					return false;
+
+				final WindowInsets insets = mainActivity.getWindow().getDecorView().getRootWindowInsets();
+				return insets != null && insets.getDisplayCutout() != null;
+			}
+		}, false);
+	}
+
 	public static boolean isDarkMode()
 	{
 		if (mainContext == null)
@@ -950,6 +1041,95 @@ public class Tools extends Extension
 		}
 	}
 
+	@SuppressWarnings("deprecation")
+	public static void vibratePattern(final String pattern, final int repeat)
+	{
+		if (pattern == null || pattern.length() == 0)
+			return;
+
+		try
+		{
+			final String[] parts = pattern.split(",");
+			final long[] timings = new long[parts.length];
+			for (int i = 0; i < parts.length; i++)
+				timings[i] = Math.max(0L, Long.parseLong(parts[i].trim()));
+
+			final Vibrator vibrator = getVibrator();
+			if (vibrator == null || !vibrator.hasVibrator())
+				return;
+
+			final int safeRepeat = repeat >= 0 && repeat < timings.length ? repeat : -1;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+				vibrator.vibrate(VibrationEffect.createWaveform(timings, safeRepeat));
+			else
+				vibrator.vibrate(timings, safeRepeat);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void vibrateAmplitude(final int milliseconds, final int amplitude)
+	{
+		if (milliseconds <= 0)
+			return;
+
+		try
+		{
+			final Vibrator vibrator = getVibrator();
+			if (vibrator == null || !vibrator.hasVibrator())
+				return;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			{
+				final int level = vibrator.hasAmplitudeControl() && amplitude >= 1 && amplitude <= 255 ? amplitude : VibrationEffect.DEFAULT_AMPLITUDE;
+				vibrator.vibrate(VibrationEffect.createOneShot(milliseconds, level));
+			}
+			else
+			{
+				vibrator.vibrate(milliseconds);
+			}
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static void vibrateEffect(final int effectId)
+	{
+		try
+		{
+			final Vibrator vibrator = getVibrator();
+			if (vibrator == null || !vibrator.hasVibrator())
+				return;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+				vibrator.vibrate(VibrationEffect.createPredefined(effectId));
+			else
+				vibrate(effectId == VibrationEffect.EFFECT_HEAVY_CLICK ? 40 : 20);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static void performHaptic(final int feedbackConstant)
+	{
+		postToUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				mainActivity.getWindow().getDecorView().performHapticFeedback(feedbackConstant);
+			}
+		});
+	}
+
 	public static void cancelVibration()
 	{
 		try
@@ -1067,6 +1247,62 @@ public class Tools extends Extension
 		}
 	}
 
+	public static void openNotificationSettings(final int requestCode)
+	{
+		if (mainActivity == null)
+			return;
+
+		try
+		{
+			final Intent intent = new Intent(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+				? Settings.ACTION_APP_NOTIFICATION_SETTINGS
+				: Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+				intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+			else
+				intent.setData(Uri.fromParts("package", getPackageName(), null));
+
+			mainActivity.startActivityForResult(intent, requestCode);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static void openBatteryOptimizationSettings(final int requestCode)
+	{
+		if (mainActivity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+			return;
+
+		try
+		{
+			mainActivity.startActivityForResult(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS), requestCode);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	public static boolean isIgnoringBatteryOptimizations()
+	{
+		if (mainContext == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+			return true;
+
+		final PowerManager manager = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
+		return manager != null && manager.isIgnoringBatteryOptimizations(getPackageName());
+	}
+
+	public static String getLaunchUri()
+	{
+		if (mainActivity == null || mainActivity.getIntent() == null || mainActivity.getIntent().getData() == null)
+			return "";
+
+		return mainActivity.getIntent().getData().toString();
+	}
+
 	public static boolean openUrl(final String url)
 	{
 		if (url == null || url.length() == 0)
@@ -1179,19 +1415,107 @@ public class Tools extends Extension
 					builder = new Notification.Builder(mainContext);
 				}
 
-				int icon = mainContext.getResources().getIdentifier("icon", "drawable", getPackageName());
-				if (icon == 0)
-					icon = mainContext.getApplicationInfo().icon;
-				if (icon == 0)
-					icon = android.R.drawable.ic_dialog_info;
-
 				builder.setAutoCancel(true);
 				builder.setContentTitle(title);
 				builder.setContentText(message);
-				builder.setSmallIcon(icon);
+				builder.setSmallIcon(resolveNotificationIcon());
 				builder.setWhen(System.currentTimeMillis());
 
 				notificationManager.notify(ID, builder.build());
+			}
+		});
+	}
+
+	private static int resolveNotificationIcon()
+	{
+		int icon = mainContext.getResources().getIdentifier("icon", "drawable", getPackageName());
+		if (icon == 0)
+			icon = mainContext.getApplicationInfo().icon;
+		if (icon == 0)
+			icon = android.R.drawable.ic_dialog_info;
+		return icon;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void showNotificationEx(final String optionsJson)
+	{
+		if (optionsJson == null)
+			return;
+
+		postToUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					final JSONObject options = new JSONObject(optionsJson);
+					final int id = options.optInt("id", 1);
+					final String channelId = options.optString("channelId", "default");
+					final String channelName = options.optString("channelName", "Default Channel");
+					final int importance = Math.max(1, Math.min(5, options.optInt("importance", 3)));
+
+					final NotificationManager manager = (NotificationManager) mainContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+					final Notification.Builder builder;
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+					{
+						final NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
+						final String description = options.optString("channelDescription", "");
+						if (description.length() > 0)
+							channel.setDescription(description);
+
+						manager.createNotificationChannel(channel);
+						builder = new Notification.Builder(mainContext, channelId);
+					}
+					else
+					{
+						builder = new Notification.Builder(mainContext);
+						builder.setPriority(importance - 3);
+					}
+
+					builder.setContentTitle(options.optString("title", ""));
+					builder.setContentText(options.optString("message", ""));
+					builder.setSmallIcon(resolveNotificationIcon());
+					builder.setWhen(System.currentTimeMillis());
+					builder.setAutoCancel(options.optBoolean("autoCancel", true));
+					builder.setOngoing(options.optBoolean("ongoing", false));
+					builder.setOnlyAlertOnce(options.optBoolean("onlyAlertOnce", false));
+
+					final String bigText = options.optString("bigText", "");
+					if (bigText.length() > 0)
+						builder.setStyle(new Notification.BigTextStyle().bigText(bigText));
+
+					final String subText = options.optString("subText", "");
+					if (subText.length() > 0)
+						builder.setSubText(subText);
+
+					if (options.optBoolean("indeterminate", false))
+						builder.setProgress(0, 0, true);
+					else if (options.optInt("progress", -1) >= 0)
+						builder.setProgress(100, Math.min(100, options.optInt("progress", 0)), false);
+
+					if (options.optBoolean("openApp", true))
+					{
+						final Intent launch = mainContext.getPackageManager().getLaunchIntentForPackage(getPackageName());
+						if (launch != null)
+						{
+							launch.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+							int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+								flags |= PendingIntent.FLAG_IMMUTABLE;
+
+							builder.setContentIntent(PendingIntent.getActivity(mainContext, id, launch, flags));
+						}
+					}
+
+					manager.notify(id, builder.build());
+				}
+				catch (Exception e)
+				{
+					Log.e(LOG_TAG, e.toString());
+				}
 			}
 		});
 	}
@@ -1681,6 +2005,66 @@ public class Tools extends Extension
 	}
 
 	@Override
+	public void onPause()
+	{
+		ToolsSensors.suspend();
+		dispatch("onPause", new JSONObject());
+	}
+
+	@Override
+	public void onResume()
+	{
+		ToolsSensors.resume();
+		dispatch("onResume", new JSONObject());
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		ToolsSensors.stopAll();
+		ToolsMonitor.stopAll();
+	}
+
+	@Override
+	public void onLowMemory()
+	{
+		dispatch("onLowMemory", new JSONObject());
+	}
+
+	@Override
+	public void onTrimMemory(int level)
+	{
+		try
+		{
+			dispatch("onTrimMemory", new JSONObject().put("level", level));
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	@Override
+	public void onNewIntent(Intent intent)
+	{
+		try
+		{
+			final JSONObject content = new JSONObject();
+			if (intent != null)
+			{
+				content.put("action", intent.getAction() != null ? intent.getAction() : "");
+				if (intent.getData() != null)
+					content.put("uri", intent.getData().toString());
+			}
+			dispatch("onNewIntent", content);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, e.toString());
+		}
+	}
+
+	@Override
 	public boolean onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		if (cbObject != null)
@@ -1691,8 +2075,24 @@ public class Tools extends Extension
 				content.put("requestCode", requestCode);
 				content.put("resultCode", resultCode);
 
-				if (data != null && data.getData() != null)
-					content.put("uri", data.getData().toString());
+				if (data != null)
+				{
+					if (data.getData() != null)
+						content.put("uri", data.getData().toString());
+
+					final ClipData clip = data.getClipData();
+					if (clip != null && clip.getItemCount() > 0)
+					{
+						final JSONArray uris = new JSONArray();
+						for (int i = 0; i < clip.getItemCount(); i++)
+						{
+							final Uri itemUri = clip.getItemAt(i).getUri();
+							if (itemUri != null)
+								uris.put(itemUri.toString());
+						}
+						content.put("uris", uris);
+					}
+				}
 
 				cbObject.call("onActivityResult", new Object[]{content.toString()});
 			}

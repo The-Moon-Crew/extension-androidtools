@@ -5,6 +5,7 @@ package extension.androidtools;
 #end
 
 import extension.androidtools.callback.CallBack;
+import extension.androidtools.callback.CallBack.PermissionResultData;
 import extension.androidtools.callback.HelperBack;
 import extension.androidtools.jni.JNICache;
 import extension.androidtools.jni.JNIUtil;
@@ -25,6 +26,36 @@ class Permissions
 	public static final READ_MEDIA_IMAGES:String = 'android.permission.READ_MEDIA_IMAGES';
 	public static final READ_MEDIA_VIDEO:String = 'android.permission.READ_MEDIA_VIDEO';
 	public static final READ_MEDIA_AUDIO:String = 'android.permission.READ_MEDIA_AUDIO';
+
+	public static final ACTIVITY_RECOGNITION:String = 'android.permission.ACTIVITY_RECOGNITION';
+	public static final BLUETOOTH_SCAN:String = 'android.permission.BLUETOOTH_SCAN';
+	public static final NEARBY_WIFI_DEVICES:String = 'android.permission.NEARBY_WIFI_DEVICES';
+	public static final READ_MEDIA_VISUAL_USER_SELECTED:String = 'android.permission.READ_MEDIA_VISUAL_USER_SELECTED';
+
+	public static inline final STATUS_GRANTED:String = 'granted';
+	public static inline final STATUS_RATIONALE:String = 'rationale';
+	public static inline final STATUS_DENIED:String = 'denied';
+
+	public static function getStatus(permission:String):String
+	{
+		if (isGranted(permission))
+			return STATUS_GRANTED;
+
+		return shouldShowRequestPermissionRationale(permission) ? STATUS_RATIONALE : STATUS_DENIED;
+	}
+
+	public static function isResultGranted(result:Null<PermissionResultData>):Bool
+	{
+		if (result == null || result.grantResults.length == 0)
+			return false;
+
+		for (grantResult in result.grantResults)
+		{
+			if (grantResult != 0)
+				return false;
+		}
+		return true;
+	}
 
 	public static function isGranted(permission:String):Bool
 	{

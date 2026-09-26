@@ -6,6 +6,14 @@ package extension.androidtools.view;
 
 import extension.androidtools.jni.JNIUtil;
 
+typedef SafeInsets =
+{
+	var left:Int;
+	var top:Int;
+	var right:Int;
+	var bottom:Int;
+}
+
 class Display
 {
 	public static inline final ORIENTATION_UNDEFINED:Int = 0;
@@ -46,6 +54,18 @@ class Display
 	public static function getRefreshRate():Float
 	{
 		return JNIUtil.callTools('getRefreshRate', '()D', [], 0.0);
+	}
+
+	public static function getSafeInsets():SafeInsets
+	{
+		final json:String = JNIUtil.callTools('getSafeInsets', '()Ljava/lang/String;', [], '{}');
+		final insets:Null<SafeInsets> = JNIUtil.parseJson(json, null);
+		return insets != null && Reflect.hasField(insets, 'left') ? insets : {left: 0, top: 0, right: 0, bottom: 0};
+	}
+
+	public static function hasCutout():Bool
+	{
+		return JNIUtil.callTools('hasDisplayCutout', '()Z', [], false);
 	}
 
 	public static function getOrientation():Int

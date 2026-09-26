@@ -10,9 +10,35 @@ class JNIUtil
 {
 	public static final TOOLS_CLASS:String = 'org/haxe/extension/Tools';
 
+	public static final SENSORS_CLASS:String = 'org/haxe/extension/ToolsSensors';
+	public static final PREFS_CLASS:String = 'org/haxe/extension/ToolsPrefs';
+	public static final FILES_CLASS:String = 'org/haxe/extension/ToolsFiles';
+	public static final MONITOR_CLASS:String = 'org/haxe/extension/ToolsMonitor';
+
 	public static function callTools<T>(methodName:String, signature:String, args:Null<Array<Dynamic>>, defaultValue:T):T
 	{
-		return safeCallStatic(JNICache.createStaticMethod(TOOLS_CLASS, methodName, signature), args, defaultValue);
+		return callJava(TOOLS_CLASS, methodName, signature, args, defaultValue);
+	}
+
+	public static function callJava<T>(className:String, methodName:String, signature:String, args:Null<Array<Dynamic>>, defaultValue:T):T
+	{
+		return safeCallStatic(JNICache.createStaticMethod(className, methodName, signature), args, defaultValue);
+	}
+
+	public static function parseJson<T>(text:Null<String>, defaultValue:T):T
+	{
+		if (text == null || text.length == 0)
+			return defaultValue;
+
+		try
+		{
+			final parsed:Null<Dynamic> = haxe.Json.parse(text);
+			return parsed != null ? cast parsed : defaultValue;
+		}
+		catch (_:Dynamic)
+		{
+			return defaultValue;
+		}
 	}
 
 	public static function getAbsolutePath(handle:Null<Dynamic>):String
